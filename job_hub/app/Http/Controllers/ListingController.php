@@ -2,13 +2,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Models\User;
 use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redis;
-use PhpParser\Node\Expr\List_;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 use function Laravel\Prompts\search;
 
@@ -82,7 +82,7 @@ class ListingController extends Controller {
         }
 
         $inputs['photo'] = $path;
-
+        $inputs['user_id'] = Auth::user()->id;
         Listing::create($inputs);
 
         return redirect()->back()->with("message", "Listing created succesfully");
@@ -93,33 +93,39 @@ class ListingController extends Controller {
     }
 
     public function updateListing(Request $request, Listing $listing) {
-        try {
-            $inputs = $request->validate([
-            "title" => "required",
-            "description" => "required|max:150",
-            "company" => "required",
-            "email" => "required|email",
-            "website" => "required",
-            "location" => "required",
-            "tags" => "required|regex:/^#[A-Za-z ]+$/",
-            "photo" => "required|mimes:png,jpeg,jpg"
-            ]);
+        if (!Auth::check() && Auth::user()->id !== $listing->user_id) {
+            return redirect()->back()->with("message", "Not Owner can't manipulate it");
+        }
 
+        $inputs = $request->validate([
+        "title" => "required",
+        "description" => "required|max:150",
+        "company" => "required",
+        "email" => "required|email",
+        "website" => "required",
+        "location" => "required",
+        "tags" => "required|regex:/^#[A-Za-z ]+$/",
+        "photo" => "mimes:png,jpeg,jpg"
+        ]);
+
+        if ($request->hasFile("photo")) {
             $path = $request->file("photo")->store("images", "public");
             if (!$path) {
                 return redirect()->back()->with("message", "Couldn't upload photo");
             }
 
             $inputs['photo'] = $path;
-
-            $listing->update($inputs);
-            return redirect()->back()->with("message", "Item Updated Succesfully");
-        } catch (QueryException $error) {
-            return redirect()->back()->with("message", $error->getMessage());
         }
+
+        $listing->update($inputs);
+        return redirect()->back()->with("message", "Item Updated Succesfully");
     }
 
     public function deleteListing(Listing $listing) {
+        if (!Auth::check() && Auth::user()->id !== $listing->user_id) {
+            return redirect()->back()->with("message", "Not Owner can't manipulate it");
+        }
+
         $listing->delete();
         return redirect()->route("index")->with("message", "Item deleted succesfully");
     }

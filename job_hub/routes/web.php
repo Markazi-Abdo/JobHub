@@ -1,20 +1,33 @@
 <?php
 
 use App\Http\Controllers\ListingController;
+use App\Http\Controllers\UserController;
 use App\Models\Listing;
 use App\Models\Listings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// User Auth Routes
+Route::get("/signup", [UserController::class, "showFormRegister"])->name("signup")->middleware("guest");
+Route::post("/user/signup", [UserController::class, "registerUser"])->name("register");
+Route::get("/login", [UserController::class, "showLogin"])->name("login")->middleware('guest');
+Route::post("/user/login", [UserController::class, "loginUser"])->name("auth");
+Route::post("/logout", [UserController::class, "logout"])->name("logout")->middleware('auth');
 
+Route::get("/user/manage", [UserController::class, "getUserListings"])->name("manage")->middleware("auth");
+Route::post("/user_filter", [UserController::class, "filterUserListings"])->name("filter")->middleware("auth");
+
+// Routes concerned with Listings
 Route::get("/", [ListingController::class, "getListings"])->name("index");
 Route::get("/{listing}", [ListingController::class, "getListing"]);
 Route::post("/filter", [ListingController::class, "searchListings"])->name("search");
-Route::post("/create", [ListingController::class, "createListing"]);
-Route::get("/edit/{listing}", [ListingController::class, "edit"])->name("edit");
-Route::put("/update/{listing}", [ListingController::class, "updateListing"]);
-Route::delete("/delete/{listing}", [ListingController::class, "deleteListing"]);
-Route::get("/listings/create", fn() => view("pages.create"))->name("create");
+Route::post("/create", [ListingController::class, "createListing"])->middleware('auth');
+Route::get("/edit/{listing}", [ListingController::class, "edit"])->name("edit")->middleware('auth');
+Route::put("/update/{listing}", [ListingController::class, "updateListing"])->middleware('auth');
+Route::delete("/delete/{listing}", [ListingController::class, "deleteListing"])->middleware('auth');
+Route::get("/listings/create", fn() => view("pages.create"))->name("create")->middleware('auth');
+
+
 
 
 

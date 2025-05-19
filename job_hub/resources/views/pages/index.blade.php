@@ -12,9 +12,6 @@
             </div>
             <div class="mt-5 flex justify-center items-center gap-10 w-full">
                 {{ $listings->links() }}
-                <button class="btn btn-square btn-primary w-32 rounded-xl">
-                    <a href="{{ route("create") }}">Add Listing</a>
-                </button>
             </div>
         @endif
     </main>
