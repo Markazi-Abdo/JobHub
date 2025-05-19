@@ -18,11 +18,6 @@
             </svg>
             <span>{{ $listing->location }}</span>
         </h5>
-        <form action="/delete/{{ $listing->id }}" method="post">
-            @csrf
-            @method("DELETE")
-            <button type="submit">Delete Listing</button>
-        </form>
         <a href="{{ route("index") }}" class="w-[50%] ml-6">
             <button class="btn btn-square btn-success w-[50%]">
                 Go Back
